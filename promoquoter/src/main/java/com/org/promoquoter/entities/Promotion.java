@@ -13,13 +13,14 @@ public class Promotion {
   @Column(nullable = false)
   private PromotionType type;
 
-  private String name;       // display name
-  private Integer priority;  // lower = earlier
+  private String name;
+  // lower = earlier
+  private Integer priority;
   private boolean enabled;
 
   // PERCENT_OFF_CATEGORY
-  private String category;   // e.g., "DAIRY"
-  private BigDecimal percent; // e.g., 10 for 10%
+  private String category;
+  private BigDecimal percent;
 
   // BUY_X_GET_Y
   private Long productId;
