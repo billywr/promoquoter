@@ -154,3 +154,6 @@ mvn -q clean test
 - Idempotency: Re-using the same Idempotency-Key for the same payload should not double-reserve.
 
 - Swagger not loading: ensure Springdoc dependencies are present and springdoc.* properties enabled.
+
+Generated test report
+![1755030040576](image/ReadMe/1755030040576.png)
