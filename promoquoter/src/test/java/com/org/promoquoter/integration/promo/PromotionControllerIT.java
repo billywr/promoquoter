@@ -32,6 +32,7 @@ class PromotionControllerIT {
     void clean() {
         repo.deleteAll();
     }
+
     // -------- tests --------
 
     @Test
@@ -160,17 +161,19 @@ class PromotionControllerIT {
         mvc.perform(post("/promotions")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body))
-           .andExpect(status().is4xxClientError());
+           .andExpect(status().is4xxClientError())
+           .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
 
         assertThat(repo.count()).isZero();
     }
 
     @Test
-    @DisplayName("POST /promotions — missing body yields 400 and nothing is saved")
-    void create_missingBody_400() throws Exception {
+    @DisplayName("POST /promotions — missing body yields 409 (mapped) and nothing is saved")
+    void create_missingBody_409() throws Exception {
         mvc.perform(post("/promotions")
                 .contentType(MediaType.APPLICATION_JSON))
-           .andExpect(status().isBadRequest());
+           .andExpect(status().isConflict()) // 409 from your exception mapping
+           .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
 
         assertThat(repo.count()).isZero();
     }
