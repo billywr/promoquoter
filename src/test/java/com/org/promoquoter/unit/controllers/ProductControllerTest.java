@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
@@ -25,16 +25,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import com.org.promoquoter.controllers.ProductController;
 
-/**
- * Unit tests for ProductController using MockMvc + Mockito (no DB).
- */
+
 @WebMvcTest(ProductController.class)
 class ProductControllerTest {
 
   @Autowired private MockMvc mvc;
   @Autowired private ObjectMapper om;
 
-  @MockBean private ProductRepository repo;
+  @MockitoBean private ProductRepository repo;
 
   // -------- Helpers
 
@@ -98,8 +96,7 @@ class ProductControllerTest {
 
     @Test
     void create_empty_array_yields_200_with_empty_response_or_400_if_validated() throws Exception {
-      // NOTE: If your CreateProductsRequest has @NotEmpty on 'products',
-      // change expectation to isBadRequest(). Otherwise controller returns 200 [].
+     
       when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
       var req = new CreateReq(List.of());
@@ -144,8 +141,7 @@ class ProductControllerTest {
       mvc.perform(post("/products")
               .contentType(MediaType.APPLICATION_JSON)
               .content(json(req)))
-          // If you have @ControllerAdvice that maps RuntimeException to 409, change to isConflict()
-          .andExpect(status().isConflict());;
+              .andExpect(status().isConflict());
 
       verify(repo).save(any(Product.class));
       verifyNoMoreInteractions(repo);

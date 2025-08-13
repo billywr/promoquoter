@@ -1,26 +1,31 @@
 package com.org.promoquoter.unit.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.org.promoquoter.entities.Promotion;
-import com.org.promoquoter.repositories.PromotionRepository;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.org.promoquoter.controllers.PromotionController;
+import com.org.promoquoter.entities.Promotion;
+import com.org.promoquoter.repositories.PromotionRepository;
 
 @WebMvcTest(PromotionController.class)
 class PromotionControllerTest {
@@ -28,7 +33,7 @@ class PromotionControllerTest {
     @Autowired MockMvc mvc;
     @Autowired ObjectMapper om;
 
-    @MockBean PromotionRepository repo;
+    @MockitoBean PromotionRepository repo;
 
     @Test
     @DisplayName("POST /promotions: saves a single promotion and returns 200 with array payload")
@@ -133,7 +138,6 @@ class PromotionControllerTest {
         assertThat(p.getPriority()).isEqualTo(7);
         assertThat(p.isEnabled()).isTrue();
         assertThat(p.getCategory()).isEqualTo("TOYS");
-        // percent is BigDecimal in the entity
         assertThat(p.getPercent()).isEqualByComparingTo(new BigDecimal("12"));
         assertThat(p.getProductId()).isEqualTo(456L);
         assertThat(p.getBuyQty()).isEqualTo(2);

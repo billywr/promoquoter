@@ -22,6 +22,12 @@ import com.org.promoquoter.promo.PromotionPipeline;
 import com.org.promoquoter.repositories.ProductRepository;
 import com.org.promoquoter.repositories.PromotionRepository;
 
+/**
+ * - Loads products, constructs CartContext lines.
+ * - Maps DB promotions to PromotionDef and runs PromotionPipeline (enabled, priority-ordered).
+ * - Applies the first supporting rule per promo, recording audit entries.
+ * - Returns per-line breakdown, grand total, promo names, and audit trail.
+ */
 @Service
 public class QuotationServiceImpl implements QuotationService {
 
@@ -43,10 +49,11 @@ public class QuotationServiceImpl implements QuotationService {
   @Override
   @Transactional(readOnly = true)
   public QuoteResponse quote(QuoteRequest req) {
-    
+
     var products = productRepo.findAllById(
         req.items().stream().map(CartItem::productId).toList()
     );
+
     Map<Long, Product> map = new HashMap<>();
     products.forEach(p -> map.put(p.getId(), p));
 

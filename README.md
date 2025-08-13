@@ -141,3 +141,66 @@ mvn -q clean test
 
 Generated test report
 ![1755030040576](image/ReadMe/1755030040576.png)
+
+## Appendiex
+- Tested powershell7 endpoints
+```pwsh
+	#products
+	Invoke-RestMethod `
+    -Uri "http://localhost:9003/products" `
+    -Method POST `
+    -Headers @{ "Content-Type" = "application/json" } `
+    -Body '{
+        "products": [
+            { "name": "Laptop", "category": "ELECTRONICS", "price": 1200.50, "stock": 5 },
+            { "name": "Shirt",  "category": "CLOTHING",    "price": 50.00,   "stock": 20 }
+        ]
+    }'
+
+	#promotions
+	Invoke-RestMethod `
+    -Uri "http://localhost:9003/promotions" `
+    -Method POST `
+    -Headers @{ "Content-Type" = "application/json" } `
+    -Body '{
+        "promotions": [
+          { "type": "PERCENT_OFF_CATEGORY", "name": "Electronics 10%", "priority": 1, "enabled": true, "category": "ELECTRONICS", "percent": 10 },
+          { "type": "BUY_X_GET_Y", "name": "Buy2Get1 Shirt", "priority": 2, "enabled": true, "productId": 2, "buyQty": 2, "freeQty": 1 }
+        ]
+      }'
+
+
+    #quote
+    Invoke-RestMethod `
+    -Uri "http://localhost:9003/cart/quote" `
+    -Method POST `
+    -Headers @{ "Content-Type" = "application/json" } `
+    -Body '{
+        "items": [
+          { "productId": 1, "qty": 1 },
+          { "productId": 2, "qty": 3 }
+        ],
+        "customerSegment": "REGULAR"
+      }'
+	  
+	 #confirm 
+	 Invoke-RestMethod `
+    -Uri "http://localhost:9003/cart/confirm" `
+    -Method POST `
+    -Headers @{
+        "Content-Type"    = "application/json"
+        "Idempotency-Key" = "123e4567-e89b-12d3-a456-426614174000"
+    } `
+    -Body '{
+        "items": [
+          { "productId": 1, "qty": 1 },
+          { "productId": 2, "qty": 3 }
+        ],
+        "customerSegment": "REGULAR"
+      }'
+	  
+	  
+	  #get_products
+	  Invoke-RestMethod -Uri "http://localhost:9003/products"
+
+```

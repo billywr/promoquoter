@@ -1,12 +1,9 @@
 package com.org.promoquoter.integration.cart;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.org.promoquoter.dto.cart.*;
-import com.org.promoquoter.entities.*;
-import com.org.promoquoter.repositories.IdempotencyRepository;
-import com.org.promoquoter.repositories.OrderRepository;
-import com.org.promoquoter.repositories.ProductRepository;
-import com.org.promoquoter.repositories.PromotionRepository;
+import java.math.BigDecimal;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,13 +12,24 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.math.BigDecimal;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.org.promoquoter.dto.cart.CartItem;
+import com.org.promoquoter.dto.cart.ConfirmRequest;
+import com.org.promoquoter.dto.cart.ConfirmResponse;
+import com.org.promoquoter.dto.cart.QuoteRequest;
+import com.org.promoquoter.dto.cart.QuoteResponse;
+import com.org.promoquoter.entities.Product;
+import com.org.promoquoter.entities.Promotion;
+import com.org.promoquoter.entities.PromotionType;
+import com.org.promoquoter.repositories.IdempotencyRepository;
+import com.org.promoquoter.repositories.OrderRepository;
+import com.org.promoquoter.repositories.ProductRepository;
+import com.org.promoquoter.repositories.PromotionRepository;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
@@ -216,9 +224,7 @@ class CartFlowIT {
         mvc.perform(post("/cart/confirm")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(req)))
-                // If you map RuntimeException to 409 in a @ControllerAdvice, this will be 409.
-                // Otherwise it's likely 5xx. Adjust if your handler differs.
-                .andExpect(status().is4xxClientError());
+                        .andExpect(status().is4xxClientError());
 
         assertThat(orders.count()).isZero();
         assertThat(products.findById(toy.getId()).orElseThrow().getStock()).isEqualTo(1);
@@ -234,8 +240,7 @@ class CartFlowIT {
         mvc.perform(post("/cart/quote")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(toJson(req)))
-                // If you map IllegalArgumentException to 409, expect conflict; else 5xx.
-                .andExpect(status().is4xxClientError());
+                        .andExpect(status().is4xxClientError());
 
         assertThat(promotions.count()).isZero();
         assertThat(products.count()).isZero();

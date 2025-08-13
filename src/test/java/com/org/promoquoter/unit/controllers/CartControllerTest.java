@@ -1,31 +1,38 @@
 package com.org.promoquoter.unit.controllers;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.hamcrest.Matchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import java.math.BigDecimal;
-import java.util.List;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.org.promoquoter.dto.cart.*;
-import com.org.promoquoter.services.OrderService;
-import com.org.promoquoter.services.QuotationService;
-
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.org.promoquoter.controllers.CartController;
+import com.org.promoquoter.dto.cart.CartItem;
+import com.org.promoquoter.dto.cart.ConfirmRequest;
+import com.org.promoquoter.dto.cart.ConfirmResponse;
+import com.org.promoquoter.dto.cart.QuoteItemResponse;
+import com.org.promoquoter.dto.cart.QuoteRequest;
+import com.org.promoquoter.dto.cart.QuoteResponse;
+import com.org.promoquoter.services.OrderService;
+import com.org.promoquoter.services.QuotationService;
 
 @WebMvcTest(CartController.class)
 class CartControllerTest {
@@ -33,10 +40,10 @@ class CartControllerTest {
   @Autowired private MockMvc mvc;
   @Autowired private ObjectMapper om;
 
-  @MockBean private QuotationService pricingService;
-  @MockBean private OrderService orderService;
+  @MockitoBean private QuotationService pricingService;
+  @MockitoBean private OrderService orderService;
 
-  // -------- Helpers
+  // Helpers
 
   private QuoteRequest sampleQuoteReq() {
     return new QuoteRequest(
@@ -84,10 +91,9 @@ class CartControllerTest {
               .content(om.writeValueAsString(sampleQuoteReq())))
           .andExpect(status().isOk())
           .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-          .andExpect(jsonPath("$.total", is(33.00))) // JSON number -> double matcher
+          .andExpect(jsonPath("$.total", is(33.00)))
           .andExpect(jsonPath("$.items", hasSize(2)))
           .andExpect(jsonPath("$.appliedPromotions[0]", is("WELCOME10")));
-         // .andExpect(jsonPath("$.audit", hasSize(1)));
 
       // verify call + payload
       ArgumentCaptor<QuoteRequest> captor = ArgumentCaptor.forClass(QuoteRequest.class);
@@ -102,7 +108,7 @@ class CartControllerTest {
 
     @Test
     void quote_validation_error_400_on_empty_items() throws Exception {
-      var badReq = new QuoteRequest(List.of(), "VIP"); // assuming @NotEmpty on items
+      var badReq = new QuoteRequest(List.of(), "VIP");
 
       mvc.perform(post("/cart/quote")
               .contentType(MediaType.APPLICATION_JSON)
@@ -207,7 +213,6 @@ class CartControllerTest {
 
     @Test
     void confirm_validation_error_400_on_invalid_body() throws Exception {
-      // e.g., qty <= 0; adjust to your DTO constraints
       var bad = new ConfirmRequest(List.of(new CartItem(101L, 0)), "VIP");
 
       mvc.perform(post("/cart/confirm")

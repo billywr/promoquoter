@@ -1,33 +1,42 @@
 package com.org.promoquoter.unit.services;
 
-import com.org.promoquoter.dto.cart.*;
-import com.org.promoquoter.entities.Product;
-import com.org.promoquoter.entities.Promotion;
-import com.org.promoquoter.entities.PromotionType;
-import com.org.promoquoter.promo.PromotionDef;
-import com.org.promoquoter.promo.PromotionPipeline;
-import com.org.promoquoter.promo.PromotionFactory;
-import com.org.promoquoter.repositories.ProductRepository;
-import com.org.promoquoter.repositories.PromotionRepository;
-import com.org.promoquoter.services.QuotationServiceImpl;
-import com.org.promoquoter.promo.CartContext;
-import com.org.promoquoter.promo.CartLine;
+import java.math.BigDecimal;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyIterable;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.argThat;
+import org.mockito.Captor;
+import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.util.List;
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import com.org.promoquoter.dto.cart.CartItem;
+import com.org.promoquoter.dto.cart.QuoteItemResponse;
+import com.org.promoquoter.dto.cart.QuoteRequest;
+import com.org.promoquoter.entities.Product;
+import com.org.promoquoter.entities.Promotion;
+import com.org.promoquoter.entities.PromotionType;
+import com.org.promoquoter.promo.CartContext;
+import com.org.promoquoter.promo.CartLine;
+import com.org.promoquoter.promo.PromotionDef;
+import com.org.promoquoter.promo.PromotionFactory;
+import com.org.promoquoter.promo.PromotionPipeline;
+import com.org.promoquoter.repositories.ProductRepository;
+import com.org.promoquoter.repositories.PromotionRepository;
+import com.org.promoquoter.services.QuotationServiceImpl;
 
-/**
- * Unit tests for QuotationServiceImpl (no Spring).
- */
 @ExtendWith(MockitoExtension.class)
 class QuotationServiceImplTest {
 

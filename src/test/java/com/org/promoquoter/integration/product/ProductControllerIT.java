@@ -1,8 +1,9 @@
 package com.org.promoquoter.integration.product;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.org.promoquoter.entities.Product;
-import com.org.promoquoter.repositories.ProductRepository;
+import java.math.BigDecimal;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,14 +12,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.math.BigDecimal;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.org.promoquoter.entities.Product;
+import com.org.promoquoter.repositories.ProductRepository;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
@@ -34,7 +36,6 @@ class ProductControllerIT {
     }
 
     // -------------------- helpers --------------------
-    private String json(Object o) throws Exception { return om.writeValueAsString(o); }
 
     private Product save(String name, String category, String price, int stock) {
         return repo.save(Product.builder()
@@ -127,9 +128,8 @@ class ProductControllerIT {
     void create_missingBody_409() throws Exception {
         mvc.perform(post("/products")
                 .contentType(MediaType.APPLICATION_JSON))
-           .andExpect(status().isConflict()) // your app maps HttpMessageNotReadableException to 409
-           .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
-
+                .andExpect(status().isConflict())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
         assertThat(repo.count()).isZero();
     }
 

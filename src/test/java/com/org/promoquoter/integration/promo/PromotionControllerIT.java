@@ -1,9 +1,9 @@
 package com.org.promoquoter.integration.promo;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.org.promoquoter.entities.Promotion;
-import com.org.promoquoter.entities.PromotionType;
-import com.org.promoquoter.repositories.PromotionRepository;
+import java.math.BigDecimal;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,13 +12,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.math.BigDecimal;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.org.promoquoter.entities.Promotion;
+import com.org.promoquoter.entities.PromotionType;
+import com.org.promoquoter.repositories.PromotionRepository;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
@@ -172,7 +174,7 @@ class PromotionControllerIT {
     void create_missingBody_409() throws Exception {
         mvc.perform(post("/promotions")
                 .contentType(MediaType.APPLICATION_JSON))
-           .andExpect(status().isConflict()) // 409 from your exception mapping
+           .andExpect(status().isConflict())
            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
 
         assertThat(repo.count()).isZero();

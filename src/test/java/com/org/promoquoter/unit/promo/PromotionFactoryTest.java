@@ -1,14 +1,15 @@
 package com.org.promoquoter.unit.promo;
 
+import java.math.BigDecimal;
+
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import com.org.promoquoter.entities.Promotion;
 import com.org.promoquoter.entities.PromotionType;
 import com.org.promoquoter.promo.PromotionDef;
 import com.org.promoquoter.promo.PromotionFactory;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.assertj.core.api.Assertions; // using Assertions.assertThat(...)
-
-import java.math.BigDecimal;
 
 class PromotionFactoryTest {
 

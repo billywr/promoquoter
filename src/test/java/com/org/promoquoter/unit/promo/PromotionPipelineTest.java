@@ -1,29 +1,35 @@
 package com.org.promoquoter.unit.promo;
 
+import java.math.BigDecimal;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.same;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import com.org.promoquoter.entities.PromotionType;
 import com.org.promoquoter.promo.CartContext;
 import com.org.promoquoter.promo.PromotionDef;
 import com.org.promoquoter.promo.PromotionPipeline;
 import com.org.promoquoter.promo.PromotionResult;
 import com.org.promoquoter.promo.PromotionRule;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.math.BigDecimal;
-import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-
-/**
- * Unit tests for PromotionPipeline (pure unit; no Spring).
- */
 @ExtendWith(MockitoExtension.class)
 class PromotionPipelineTest {
 
@@ -69,7 +75,7 @@ class PromotionPipelineTest {
         var defA = def("A", 1, true);
         var defC = def("C", 0, false);
 
-        // Only rule1 needs stubbing; pipeline won't query rule2.supports when rule1 already supports
+        // Only rule1 needs stubbing; pipeline won't query rule2  when rule1 already supports
         when(rule1.supports(any(PromotionDef.class))).thenReturn(true);
 
         // Add visible audit to verify order A then B
