@@ -7,8 +7,8 @@ import com.org.promoquoter.entities.PromotionType;
 
 import jakarta.validation.constraints.NotNull;
 
-public record CreatePromotionsRequest(List<PromotionCreate> promotions) {
-  public record PromotionCreate(
+public record PromotionRequest(List<CreatePromotion> promotions) {
+  public record CreatePromotion(
     @NotNull PromotionType type,
     String name,
     @NotNull Integer priority,

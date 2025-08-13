@@ -32,8 +32,7 @@ public class CartController {
   }
 
   @PostMapping("/confirm")
-  public ResponseEntity<ConfirmResponse> confirm(@RequestHeader(name = "Idempotency-Key", required = false) String idemKey,
-                                                 @Valid @RequestBody ConfirmRequest req){
+  public ResponseEntity<ConfirmResponse> confirm(@RequestHeader(name = "Idempotency-Key", required = false) String idemKey, @Valid @RequestBody ConfirmRequest req){
     return ResponseEntity.ok(orderService.confirm(req, idemKey));
   }
 }

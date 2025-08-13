@@ -12,13 +12,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Entity 
+@Getter 
+@Setter 
+@NoArgsConstructor 
+@AllArgsConstructor 
+@Builder
 @Table(name = "idempotency_record")
 public class IdempotencyRecord {
   @Id
   @Column(name = "idempotency_key", length = 255)
   private String idempotencyKey;
 
+  //optional
   @Column(length = 2000)
   private String requestHash;
 

@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.org.promoquoter.dto.promotion.CreatePromotionsRequest;
+import com.org.promoquoter.dto.promotion.PromotionRequest;
 import com.org.promoquoter.entities.Promotion;
 import com.org.promoquoter.repositories.PromotionRepository;
 
@@ -17,7 +17,7 @@ public class PromotionController {
   public PromotionController(PromotionRepository repo){this.repo = repo;}
 
   @PostMapping
-  public ResponseEntity<?> create(@Valid @RequestBody CreatePromotionsRequest req){
+  public ResponseEntity<?> create(@Valid @RequestBody PromotionRequest req){
     var saved = new ArrayList<Promotion>();
     for (var r : req.promotions()) {
       saved.add(repo.save(Promotion.builder()

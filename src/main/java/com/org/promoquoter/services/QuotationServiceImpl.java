@@ -43,6 +43,7 @@ public class QuotationServiceImpl implements QuotationService {
   @Override
   @Transactional(readOnly = true)
   public QuoteResponse quote(QuoteRequest req) {
+    
     var products = productRepo.findAllById(
         req.items().stream().map(CartItem::productId).toList()
     );

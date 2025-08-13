@@ -21,9 +21,8 @@ public class OrderServiceImpl implements OrderService {
   private final IdempotencyRepository idemRepo;
   private final QuotationService pricingService;
 
-  public OrderServiceImpl(ProductRepository productRepo,OrderRepository orderRepo, IdempotencyRepository idemRepo,
+  public OrderServiceImpl(ProductRepository productRepo, OrderRepository orderRepo, IdempotencyRepository idemRepo,
       QuotationService pricingService) {
-
         this.productRepo = productRepo;
         this.orderRepo = orderRepo;
         this.idemRepo = idemRepo;

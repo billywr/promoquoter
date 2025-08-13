@@ -9,7 +9,11 @@ import com.org.promoquoter.entities.PromotionType;
 
 @Component
 public class BuyXGetYRule implements PromotionRule {
-  @Override public boolean supports(PromotionDef def){return def.type()== PromotionType.BUY_X_GET_Y;}
+
+  @Override 
+  public boolean supports(PromotionDef def) {
+    return def.type()== PromotionType.BUY_X_GET_Y;
+  }
 
   @Override
   public PromotionResult apply(CartContext ctx, PromotionDef def) {
@@ -20,13 +24,15 @@ public class BuyXGetYRule implements PromotionRule {
     int x = def.buyQty();
     int y = def.freeQty();
     int block = x + y;
-    int free = (qty / block) * y; // universal formula
+    int free = (qty / block) * y; // standard formula
 
     BigDecimal discount = line.getUnitPrice().multiply(BigDecimal.valueOf(free)).setScale(2, RoundingMode.HALF_UP);
+
     if (free>0) {
       line.addDiscount(discount);
       ctx.audit("BUY_"+x+"_GET_"+y+" on "+line.getName()+": free="+free+", -"+discount);
     }
+
     return PromotionResult.of("BUY_X_GET_Y", discount);
   }
 }
