@@ -142,7 +142,7 @@ mvn -q clean test
 Generated test report
 ![1755030040576](image/ReadMe/1755030040576.png)
 
-## Appendiex
+## Appendix
 - Tested powershell7 endpoints
 ```pwsh
 	#products
