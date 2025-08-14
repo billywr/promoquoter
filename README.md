@@ -47,7 +47,7 @@ mvn spring-boot:run
 ```
 App starts on `http://localhost:9003`.
 
-## API — Quick Tests
+## API - Quick Tests
 ### Swagger / OpenAPI
 - Open Swagger UI: `http://localhost:9003/swagger-ui/index.html`
 
