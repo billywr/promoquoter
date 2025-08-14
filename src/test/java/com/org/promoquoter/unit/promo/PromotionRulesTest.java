@@ -1,15 +1,19 @@
 package com.org.promoquoter.unit.promo;
 
-import com.org.promoquoter.entities.PromotionType;
-import com.org.promoquoter.promo.*;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+import com.org.promoquoter.entities.PromotionType;
+import com.org.promoquoter.promo.BuyXGetYRule;
+import com.org.promoquoter.promo.CartContext;
+import com.org.promoquoter.promo.CartLine;
+import com.org.promoquoter.promo.PercentOffCategoryRule;
+import com.org.promoquoter.promo.PromotionDef;
 
 class PromotionRulesTest {
 
@@ -49,8 +53,9 @@ class PromotionRulesTest {
         return new CartContext(List.of(lines));
     }
 
-    private CartLine line(long pid, String name, int qty, String unitPrice) {
-        return new CartLine(pid, name, qty, new BigDecimal(unitPrice));
+    // CHANGED: include category in test CartLine helper
+    private CartLine line(long pid, String name, String category, int qty, String unitPrice) {
+        return new CartLine(pid, name, category, qty, new BigDecimal(unitPrice));
     }
 
     @Nested
@@ -70,19 +75,18 @@ class PromotionRulesTest {
         }
 
         @Test
-        @DisplayName("apply() → discounts each line, rounds HALF_UP to 2dp, writes one audit entry per line")
+        @DisplayName("apply() → discounts each matching-category line, HALF_UP to 2dp, one audit per line")
         void apply_discountsAndAudits_eachLine() {
-            // Cart: P1=100.00 x1, P2=50.00 x2 → subtotals 100.00 and 100.00
+            // Cart: two ELECTRONICS lines so both get 10%
             var ctx = cart(
-                    line(1L, "Laptop", 1, "100.00"),
-                    line(2L, "Mouse",  2, "50.00")
+                    line(1L, "Laptop", "ELECTRONICS", 1, "100.00"),
+                    line(2L, "Mouse",  "ELECTRONICS", 2, "50.00")
             );
 
-            var def = defPercent("Summer Sale", "ANY", "10"); // 10%
+            var def = defPercent("Summer Sale", "ELECTRONICS", "10");
 
             var result = rule.apply(ctx, def);
 
-            // Each line: -10% of its original subtotal
             var l1 = ctx.lineByProduct(1L);
             var l2 = ctx.lineByProduct(2L);
 
@@ -92,21 +96,17 @@ class PromotionRulesTest {
             assertThat(l2.getDiscount()).isEqualByComparingTo("10.00");
             assertThat(l2.getFinalSubtotal()).isEqualByComparingTo("90.00");
 
-            // Two audit entries, one per line
             assertThat(ctx.auditEntries()).hasSize(2);
-            assertThat(ctx.auditEntries().get(0))
-                    .isEqualTo("PERCENT_OFF_CATEGORY(10%) on Laptop: -10.00");
-            assertThat(ctx.auditEntries().get(1))
-                    .isEqualTo("PERCENT_OFF_CATEGORY(10%) on Mouse: -10.00");
+            assertThat(ctx.auditEntries().get(0)).isEqualTo("PERCENT_OFF_CATEGORY(10%) on Laptop: -10.00");
+            assertThat(ctx.auditEntries().get(1)).isEqualTo("PERCENT_OFF_CATEGORY(10%) on Mouse: -10.00");
 
-            // Result object present (amount not asserted since type not provided here)
             assertThat(result).isNotNull();
         }
 
         @Test
-        @DisplayName("apply() → percent=0 yields no discount and no audit")
+        @DisplayName("apply() → percent=0 yields no discount and no audit (matching category)")
         void apply_zeroPercent_noop() {
-            var ctx = cart(line(1L, "Item", 3, "12.34"));
+            var ctx = cart(line(1L, "Item", "ANY", 3, "12.34"));
             var def = defPercent("Zero", "ANY", "0");
 
             var result = rule.apply(ctx, def);
@@ -117,19 +117,30 @@ class PromotionRulesTest {
         }
 
         @Test
-        @DisplayName("apply() → rounding example: 15% of 0.333*3 = 1.00 total discount 0.15*0.999≈0.15 → 0.15, final 0.85")
+        @DisplayName("apply() → rounding HALF_UP: 15% of 0.999 = 0.15; final 0.85")
         void apply_rounding_halfUp() {
-            // One line: unit=0.333, qty=3, subtotal=0.999
-            var ctx = cart(line(1L, "Tiny", 3, "0.333"));
-            var def = defPercent("FifteenOff", "ANY", "15"); // 15%
+            // One line in MISC so it matches def category
+            var ctx = cart(line(1L, "Tiny", "MISC", 3, "0.333"));
+            var def = defPercent("FifteenOff", "MISC", "15");
 
             rule.apply(ctx, def);
 
             var l = ctx.lineByProduct(1L);
-            // discount = 0.999 * 0.15 = 0.14985 → 0.15
             assertThat(l.getDiscount()).isEqualByComparingTo("0.15");
-            // final = 0.999 - 0.15 = 0.84985 → 0.85 (CartLine#setScale(2, HALF_UP))
             assertThat(l.getFinalSubtotal()).isEqualByComparingTo("0.85");
+        }
+
+        @Test
+        @DisplayName("apply() → non-matching category yields no discount")
+        void apply_nonMatchingCategory_noop() {
+            var ctx = cart(line(1L, "Milk", "DAIRY", 2, "2.50"));
+            var def = defPercent("Electronics Sale", "ELECTRONICS", "10");
+
+            rule.apply(ctx, def);
+
+            var milk = ctx.lineByProduct(1L);
+            assertThat(milk.getDiscount()).isEqualByComparingTo("0.00");
+            assertThat(ctx.auditEntries()).isEmpty();
         }
     }
 
@@ -151,28 +162,23 @@ class PromotionRulesTest {
         @Test
         @DisplayName("apply() → qty=5, buy2 get1 ⇒ free=1, discount=1*unit, audit written")
         void apply_bogo_basic() {
-            var ctx = cart(line(10L, "Soda", 5, "1.25"));
+            var ctx = cart(line(10L, "Soda", "DRINKS", 5, "1.25"));
             var def = defBogo("Buy2Get1", 10L, 2, 1);
 
             var result = rule.apply(ctx, def);
 
             var soda = ctx.lineByProduct(10L);
-            // free = (5 / (2+1)) * 1 = 1
             assertThat(soda.getDiscount()).isEqualByComparingTo("1.25");
-            assertThat(soda.getFinalSubtotal()).isEqualByComparingTo("5.00"); // 5*1.25 - 1.25
-
-            assertThat(ctx.auditEntries()).hasSize(1);
-            assertThat(ctx.auditEntries().get(0))
-                    .isEqualTo("BUY_2_GET_1 on Soda: free=1, -1.25");
-
+            assertThat(soda.getFinalSubtotal()).isEqualByComparingTo("5.00");
+            assertThat(ctx.auditEntries()).containsExactly("BUY_2_GET_1 on Soda: free=1, -1.25");
             assertThat(result).isNotNull();
         }
 
         @Test
         @DisplayName("apply() → not enough qty for a full block ⇒ no free items, no audit")
         void apply_bogo_noBlock_noop() {
-            var ctx = cart(line(11L, "Book", 2, "10.00"));
-            var def = defBogo("Buy2Get1", 11L, 2, 1); // need 3 per block; have only 2
+            var ctx = cart(line(11L, "Book", "BOOKS", 2, "10.00"));
+            var def = defBogo("Buy2Get1", 11L, 2, 1);
 
             rule.apply(ctx, def);
 
@@ -184,8 +190,8 @@ class PromotionRulesTest {
         @Test
         @DisplayName("apply() → product not in cart ⇒ no change, no audit")
         void apply_bogo_missingLine_noop() {
-            var ctx = cart(line(12L, "Pen", 4, "0.50"));
-            var def = defBogo("Buy2Get1", 99L, 2, 1); // product id 99 not present
+            var ctx = cart(line(12L, "Pen", "STATIONERY", 4, "0.50"));
+            var def = defBogo("Buy2Get1", 99L, 2, 1);
 
             rule.apply(ctx, def);
 
@@ -197,15 +203,13 @@ class PromotionRulesTest {
         @Test
         @DisplayName("apply() → rounding on discount uses HALF_UP to 2dp")
         void apply_bogo_rounding() {
-            // unit 0.333, qty 6, buy2 get1 ⇒ blocks=(6/(2+1))=2 ⇒ free=2 ⇒ discount=2*0.333=0.666 → 0.67
-            var ctx = cart(line(13L, "Tiny", 6, "0.333"));
+            var ctx = cart(line(13L, "Tiny", "MISC", 6, "0.333"));
             var def = defBogo("Buy2Get1", 13L, 2, 1);
 
             rule.apply(ctx, def);
 
             var tiny = ctx.lineByProduct(13L);
             assertThat(tiny.getDiscount()).isEqualByComparingTo("0.67");
-            // final = 6*0.333 - 0.666(rounded to 0.67) → 1.998 - 0.67 = 1.328 → 1.33 after CartLine rounding
             assertThat(tiny.getFinalSubtotal()).isEqualByComparingTo("1.33");
         }
     }

@@ -19,9 +19,16 @@ public class CartContext {
     return cartLines.stream().filter(l -> l.getProductId().equals(id)).findFirst().orElse(null);
   }
 
-  public List<CartLine> cartLinesInCategory(String category) {
-    return cartLines;
-  }
+
+ /**
+  * Returns all cart lines in the given category.
+  */
+ public List<CartLine> cartLinesInCategory(String category) {
+  if (category == null) return List.of();
+  return cartLines.stream()
+      .filter(l -> Objects.equals(l.getCategory(), category))
+      .toList();
+}
 
   public void audit(String msg) { audit.add(msg); }
 

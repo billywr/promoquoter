@@ -11,8 +11,11 @@ import lombok.RequiredArgsConstructor;
 public class CartLine {
     private final Long productId;
     private final String name;
+    private final String category;  
     private final int qty;
     private final BigDecimal unitPrice;
+
+     public String getCategory() { return category; }
 
     private BigDecimal discount = BigDecimal.ZERO;
 

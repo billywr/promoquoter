@@ -63,7 +63,7 @@ public class QuotationServiceImpl implements QuotationService {
       if (p == null) {
         throw new IllegalArgumentException("Product not found: " + item.productId());
       }
-      lines.add(new CartLine(p.getId(), p.getName(), item.qty(), p.getPrice()));
+      lines.add(new CartLine(p.getId(), p.getName(), p.getCategory(), item.qty(), p.getPrice()));
     }
 
     var ctx = new CartContext(lines);
