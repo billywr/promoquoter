@@ -107,7 +107,7 @@ curl -X POST http://localhost:9003/cart/confirm \
       }'
 ```
 
-### Testing — Unit and Integration testing.
+### Testing - Unit and Integration testing.
 ```bash
   mvn -q clean verify
     # or
